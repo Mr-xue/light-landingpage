@@ -1,35 +1,111 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dawn">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>光影背景 · Today.ai 复刻</title>
+<meta name="theme-color" content="#E7EBF4" />
+<title>光影背景 · 四色主题</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ACCDEC'/%3E%3Cstop offset='.6' stop-color='%23E7EBF4'/%3E%3Cstop offset='1' stop-color='%23FFDDB9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3C/svg%3E" />
+<script>
+  /* 在首次绘制前定好主题，避免闪一下默认配色（FOUC）
+     优先级：URL 参数 ?theme= > 锚点 #theme > localStorage > dawn */
+  (function () {
+    var KEYS = ['dawn', 'dusk', 'mist', 'ember'];
+    var q = '', h = '', s = '';
+    try { q = new URLSearchParams(location.search).get('theme') || ''; } catch (e) {}
+    h = location.hash.replace(/^#/, '');
+    try { s = localStorage.getItem('bg-theme') || ''; } catch (e) {}
+    var k = q || h || s;
+    document.documentElement.setAttribute('data-theme', KEYS.indexOf(k) > -1 ? k : 'dawn');
+  })();
+</script>
 <style>
   /* ============================================================
      背景层结构（1:1 还原 today.ai/thanks）
-     ① stage     静态渐变打底  #ACCDEC → #E7EBF4 → #FFDDB9
+     ① stage     静态渐变打底（随主题变化）
      ② video     白墙树影视频，object-fit: cover / object-position: center top
      ③ poster    视频海报图，视频就绪后淡出（crossfade）
      ④ tint      同款渐变 @52% 透明 + mix-blend-mode: color  ← 关键染色层
-     ⑤ veil      白色 28% 薄纱，把整体压柔
+     ⑤ veil      薄纱，把整体压柔
      ⑥ content   正文
+
+     四套主题共用同一套图层结构，只换 CSS 变量：
+       dawn  晨曦（原站配色）  dusk  暮色（深色科技）
+       mist  雾林（莫兰迪灰绿） ember 余晖（暖金日落）
      ============================================================ */
 
-  :root {
+  /* ---------- 主题：晨曦 Dawn（默认，原站配色） ---------- */
+  :root,
+  [data-theme="dawn"] {
     --bg-base: linear-gradient(180deg, #ACCDEC 0%, #E7EBF4 61.54%, #FFDDB9 100%);
     --bg-tint: linear-gradient(180deg,
                 rgba(172, 205, 236, 0.52) 0%,
                 rgba(231, 235, 244, 0.52) 61.54%,
                 rgba(255, 221, 185, 0.52) 100%);
     --bg-veil: rgba(255, 255, 255, 0.28);
+    --video-filter: none;                 /* 亮底主题：视频原样即可 */
 
     --text: rgba(0, 0, 0, 0.82);
     --text-soft: rgba(0, 0, 0, 0.56);
     --glass-bg: rgba(255, 255, 255, 0.42);
     --glass-bd: rgba(255, 255, 255, 0.62);
     --glass-sh: 0 6px 24px rgba(60, 80, 120, 0.14);
+  }
 
+  /* ---------- 主题：暮色 Dusk（深蓝紫黑 + 青蓝紫点缀） ---------- */
+  /* 视频本体是「亮白墙」，不压暗的话白字会糊在亮底上。
+     所以先压暗视频（保留树影明暗层次），再用深色薄纱收敛。 */
+  [data-theme="dusk"] {
+    --bg-base: linear-gradient(180deg, #0B1020 0%, #171A33 61.54%, #2A1E33 100%);
+    --bg-tint: linear-gradient(180deg,
+                rgba(60, 140, 235, 0.60) 0%,
+                rgba(120, 105, 220, 0.60) 61.54%,
+                rgba(180, 105, 195, 0.60) 100%);
+    --bg-veil: rgba(6, 8, 20, 0.30);
+    --video-filter: brightness(0.38) saturate(0.92) contrast(1.06);
+
+    --text: rgba(255, 255, 255, 0.92);
+    --text-soft: rgba(255, 255, 255, 0.60);
+    --glass-bg: rgba(255, 255, 255, 0.09);
+    --glass-bd: rgba(255, 255, 255, 0.17);
+    --glass-sh: 0 6px 24px rgba(0, 0, 0, 0.30);
+  }
+
+  /* ---------- 主题：雾林 Mist（莫兰迪灰绿 · 安静高级） ---------- */
+  [data-theme="mist"] {
+    --bg-base: linear-gradient(180deg, #C9D6CE 0%, #E8ECE5 61.54%, #E4DBCB 100%);
+    --bg-tint: linear-gradient(180deg,
+                rgba(92, 145, 128, 0.46) 0%,
+                rgba(148, 164, 148, 0.46) 61.54%,
+                rgba(188, 166, 132, 0.46) 100%);
+    --bg-veil: rgba(250, 252, 248, 0.30);
+    --video-filter: saturate(0.80) contrast(1.02);
+
+    --text: rgba(26, 36, 32, 0.84);
+    --text-soft: rgba(26, 36, 32, 0.56);
+    --glass-bg: rgba(255, 255, 255, 0.40);
+    --glass-bd: rgba(255, 255, 255, 0.60);
+    --glass-sh: 0 6px 24px rgba(50, 70, 60, 0.14);
+  }
+
+  /* ---------- 主题：余晖 Ember（暖金日落） ---------- */
+  [data-theme="ember"] {
+    --bg-base: linear-gradient(180deg, #E7BC97 0%, #F4E4D7 61.54%, #EDC9A2 100%);
+    --bg-tint: linear-gradient(180deg,
+                rgba(232, 148, 95, 0.50) 0%,
+                rgba(222, 176, 142, 0.50) 61.54%,
+                rgba(226, 150, 112, 0.50) 100%);
+    --bg-veil: rgba(255, 246, 236, 0.26);
+    --video-filter: sepia(0.16) saturate(1.10) hue-rotate(-5deg) brightness(1.02);
+
+    --text: rgba(58, 34, 20, 0.84);
+    --text-soft: rgba(58, 34, 20, 0.56);
+    --glass-bg: rgba(255, 255, 255, 0.40);
+    --glass-bd: rgba(255, 255, 255, 0.60);
+    --glass-sh: 0 6px 24px rgba(120, 70, 30, 0.16);
+  }
+
+  :root {
     --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
@@ -72,6 +148,7 @@
     object-fit: cover;
     object-position: center top;
     pointer-events: none;
+    filter: var(--video-filter);
   }
 
   /* ---------- ③ 海报图（crossfade） ---------- */
@@ -90,6 +167,7 @@
     object-fit: cover;
     object-position: center top;
     display: block;
+    filter: var(--video-filter);   /* 与视频同款调色，淡出时不会跳色 */
   }
   /* 视频开始播放 → 海报淡出 */
   .stage.is-ready .bg-poster { opacity: 0; }
@@ -104,7 +182,7 @@
     mix-blend-mode: color;
   }
 
-  /* ---------- ⑤ 白色薄纱 ---------- */
+  /* ---------- ⑤ 薄纱 ---------- */
   .bg-veil {
     position: absolute;
     inset: 0;
@@ -203,15 +281,56 @@
     transition: transform 0.35s var(--ease-soft), background 0.35s var(--ease-soft);
   }
   .btn:hover { transform: translateY(-2px); }
-  .btn.ghost {
-    background: transparent;
-    box-shadow: none;
-    border-color: transparent;
-    color: var(--text-soft);
+  .btn svg { width: 13px; height: 13px; }
+
+  /* ---------- 主题切换器（低调：默认半透明，悬停/聚焦时浮现） ---------- */
+  .theme-switch {
+    position: fixed;
+    right: max(20px, env(safe-area-inset-right));
+    bottom: max(20px, env(safe-area-inset-bottom));
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 11px;
+    border-radius: 999px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-bd);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: var(--glass-sh);
+    opacity: 0.42;
+    transition: opacity 0.45s var(--ease-soft);
   }
-  .btn.ghost:hover { color: var(--text); }
-  .btn svg { width: 15px; height: 15px; }
-  .btn.ghost svg { width: 13px; height: 13px; }
+  .theme-switch:hover,
+  .theme-switch:focus-within { opacity: 1; }
+
+  .theme-switch button {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.62);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: transform 0.3s var(--ease-soft), box-shadow 0.3s var(--ease-soft);
+  }
+  .theme-switch button:hover { transform: scale(1.16); }
+  .theme-switch button:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+  }
+  .theme-switch button[aria-checked="true"] {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px var(--glass-bd), 0 0 0 3.5px rgba(128, 128, 128, 0.35);
+  }
+  /* 每个色点即该主题的打底渐变 */
+  .theme-switch [data-theme-key="dawn"]  { background: linear-gradient(180deg, #ACCDEC, #E7EBF4, #FFDDB9); }
+  .theme-switch [data-theme-key="dusk"]  { background: linear-gradient(180deg, #0B1020, #171A33, #2A1E33); }
+  .theme-switch [data-theme-key="mist"]  { background: linear-gradient(180deg, #C9D6CE, #E8ECE5, #E4DBCB); }
+  .theme-switch [data-theme-key="ember"] { background: linear-gradient(180deg, #E7BC97, #F4E4D7, #EDC9A2); }
 
   @keyframes rise {
     from { opacity: 0; transform: translateY(14px); }
@@ -249,22 +368,22 @@
   <!-- ④ 渐变染色层 -->
   <div class="bg-tint"></div>
 
-  <!-- ⑤ 白色薄纱 -->
+  <!-- ⑤ 薄纱 -->
   <div class="bg-veil"></div>
 
-  <!-- ⑥ 正文（文案随便换） -->
-  <main class="content">
-    <span class="eyebrow"><span class="dot"></span>光影背景</span>
+  <!-- ⑥ 正文（文案随主题切换，也可自行固定） -->
+  <main class="content" id="content">
+    <span class="eyebrow"><span class="dot"></span><span id="heroEyebrow">光影背景</span></span>
 
-    <h1>把光，留在墙上。</h1>
+    <h1 id="heroTitle">把光，留在墙上。</h1>
 
-    <p class="lede">
+    <p class="lede" id="heroLede">
       树影在白色墙面上缓缓流动，蓝到暖的渐变轻轻染过。
       安静、通透，像午后窗边的一段留白。
     </p>
 
-    <div class="actions">
-      <a class="btn ghost" href="assets/bg.mp4" download>
+    <div class="actions" id="heroActions">
+      <a class="btn" href="assets/bg.mp4" download>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" />
         </svg>
@@ -275,36 +394,155 @@
 
 </div>
 
+<!-- 主题切换器：小色点 = 该主题的打底渐变 -->
+<div class="theme-switch" id="themeSwitch" role="radiogroup" aria-label="配色主题">
+  <button type="button" role="radio" aria-checked="true"  data-theme-key="dawn"  title="晨曦 · Dawn"></button>
+  <button type="button" role="radio" aria-checked="false" data-theme-key="dusk"  title="暮色 · Dusk"></button>
+  <button type="button" role="radio" aria-checked="false" data-theme-key="mist"  title="雾林 · Mist"></button>
+  <button type="button" role="radio" aria-checked="false" data-theme-key="ember" title="余晖 · Ember"></button>
+</div>
+
 <script>
   (function () {
+    /* ================= 视频：就绪后让海报淡出 ================= */
     var stage = document.getElementById('stage');
     var video = document.getElementById('bgVideo');
-    if (!video) return;
 
-    // 视频真正开始播放后再让海报图淡出，避免出现黑帧
-    function markReady() { stage.classList.add('is-ready'); }
+    if (video) {
+      function markReady() { stage.classList.add('is-ready'); }
 
-    video.addEventListener('playing', markReady, { once: true });
-    video.addEventListener('loadeddata', function () {
-      // 兜底：首帧已解码，允许淡出
-      requestAnimationFrame(markReady);
-    }, { once: true });
+      video.addEventListener('playing', markReady, { once: true });
+      video.addEventListener('loadeddata', function () {
+        requestAnimationFrame(markReady);   // 兜底：首帧已解码
+      }, { once: true });
 
-    // 某些浏览器需要显式触发一次播放
-    var p = video.play();
-    if (p && typeof p.catch === 'function') {
-      p.catch(function () {
-        // 自动播放被拦（如省电模式）：保留海报图，静默失败
-        window.addEventListener('pointerdown', function once() {
-          window.removeEventListener('pointerdown', once);
-          video.play().catch(function () {});
-        }, { once: true });
+      var p = video.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(function () {
+          // 自动播放被拦（如省电模式）：保留海报图，首次点击后唤起
+          window.addEventListener('pointerdown', function once() {
+            window.removeEventListener('pointerdown', once);
+            video.play().catch(function () {});
+          }, { once: true });
+        });
+      }
+
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && video.paused) video.play().catch(function () {});
       });
     }
 
-    // 标签页切回前台继续播放
-    document.addEventListener('visibilitychange', function () {
-      if (!document.hidden && video.paused) video.play().catch(function () {});
+    /* ================= 主题 ================= */
+    var THEMES = {
+      dawn: {
+        eyebrow: '光影背景',
+        title: '把光，留在墙上。',
+        lede: '树影在白色墙面上缓缓流动，蓝到暖的渐变轻轻染过。安静、通透，像午后窗边的一段留白。',
+        sw: ['#ACCDEC', '#E7EBF4', '#FFDDB9'],
+        themeColor: '#E7EBF4'
+      },
+      dusk: {
+        eyebrow: '暮色背景',
+        title: '夜把光，调成了蓝。',
+        lede: '树影退进暗处，只剩轮廓。青蓝与紫在墙上缓慢交换位置，安静得像一段深夜的呼吸。',
+        sw: ['#0B1020', '#171A33', '#2A1E33'],
+        themeColor: '#171A33'
+      },
+      mist: {
+        eyebrow: '雾林背景',
+        title: '一场雾，停在墙面上。',
+        lede: '绿意被稀释成灰，米与沙混在一起。树影不再清晰，只剩下呼吸般的深浅。',
+        sw: ['#C9D6CE', '#E8ECE5', '#E4DBCB'],
+        themeColor: '#E8ECE5'
+      },
+      ember: {
+        eyebrow: '余晖背景',
+        title: '太阳落得很慢。',
+        lede: '墙面被染成蜜色，树影被拉长。一天里最后那点暖，慢慢渗进白墙的纹理里。',
+        sw: ['#E7BC97', '#F4E4D7', '#EDC9A2'],
+        themeColor: '#F4E4D7'
+      }
+    };
+    var KEYS = ['dawn', 'dusk', 'mist', 'ember'];
+    var root = document.documentElement;
+
+    var elEyebrow = document.getElementById('heroEyebrow');
+    var elTitle   = document.getElementById('heroTitle');
+    var elLede    = document.getElementById('heroLede');
+    var elActions = document.getElementById('heroActions');
+    var switchEl  = document.getElementById('themeSwitch');
+    var iconEl    = document.querySelector('link[rel="icon"]');
+    var metaColor = document.querySelector('meta[name="theme-color"]');
+
+    // 动态生成 favicon，让标签页图标也跟着主题走
+    function favicon(colors) {
+      var svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>" +
+                "<defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'>" +
+                "<stop offset='0' stop-color='" + colors[0] + "'/>" +
+                "<stop offset='.6154' stop-color='" + colors[1] + "'/>" +
+                "<stop offset='1' stop-color='" + colors[2] + "'/>" +
+                "</linearGradient></defs>" +
+                "<rect width='32' height='32' rx='8' fill='url(#g)'/></svg>";
+      return 'data:image/svg+xml,' + encodeURIComponent(svg);
+    }
+
+    // 重播入场动画，让文案切换有个过渡而不是硬闪
+    function replay(el) {
+      if (!el) return;
+      el.style.animation = 'none';
+      void el.offsetWidth;      // 强制 reflow
+      el.style.animation = '';
+    }
+
+    function apply(key, persist) {
+      var t = THEMES[key] || THEMES.dawn;
+
+      root.setAttribute('data-theme', key);
+      if (elEyebrow) elEyebrow.textContent = t.eyebrow;
+      if (elTitle)   elTitle.textContent   = t.title;
+      if (elLede)    elLede.textContent    = t.lede;
+      if (iconEl)    iconEl.setAttribute('href', favicon(t.sw));
+      if (metaColor) metaColor.setAttribute('content', t.themeColor);
+
+      replay(elEyebrow); replay(elTitle); replay(elLede); replay(elActions);
+
+      if (switchEl) {
+        Array.prototype.forEach.call(switchEl.querySelectorAll('button'), function (b) {
+          b.setAttribute('aria-checked', String(b.getAttribute('data-theme-key') === key));
+        });
+      }
+
+      if (persist) {
+        try { localStorage.setItem('bg-theme', key); } catch (e) {}
+        try {
+          var url = location.pathname + (location.search || '');
+          if (location.hash) url += location.hash;
+          history.replaceState(null, '', url);
+        } catch (e) {}
+      }
+    }
+
+    if (switchEl) {
+      switchEl.addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-theme-key]');
+        if (b) apply(b.getAttribute('data-theme-key'), true);
+      });
+    }
+
+    // 支持 ?theme=dusk 直接指定主题（用于分享某个配色）
+    function fromUrl() {
+      var q = '';
+      try { q = new URLSearchParams(location.search).get('theme') || ''; } catch (e) {}
+      var h = location.hash.replace(/^#/, '');
+      var k = q || h;
+      return KEYS.indexOf(k) > -1 ? k : null;
+    }
+
+    apply(fromUrl() || root.getAttribute('data-theme') || 'dawn', false);
+
+    window.addEventListener('hashchange', function () {
+      var k = fromUrl();
+      if (k) apply(k, false);
     });
   })();
 </script>
